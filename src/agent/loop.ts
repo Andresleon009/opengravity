@@ -57,7 +57,9 @@ export async function runAgentLoop(chatId: number, userMessage: string): Promise
             const { message, finish_reason } = response;
 
             // Ensure content is at least an empty string
-            if (message.content === null) message.content = '';
+            if (message.content === null || message.content === undefined) {
+                message.content = '';
+            }
 
             // Save assistant message to memory and context
             await memory.addMessage({
@@ -92,8 +94,9 @@ export async function runAgentLoop(chatId: number, userMessage: string): Promise
                 // Loop continues to generate a response based on tool output
             } else {
                 // 5. Final response
-                console.log(`✨ Respuesta final lista.`);
-                return message.content || 'Hecho.';
+                const finalReply = message.content || 'Hecho.';
+                console.log(`✨ Respuesta final lista: "${finalReply.substring(0, 50)}..."`);
+                return finalReply;
             }
         }
 

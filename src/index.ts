@@ -23,17 +23,18 @@ async function bootstrap() {
     });
 
     // Handle graceful shutdown
-    process.once('SIGINT', () => {
-        bot.stop();
+    const stopBot = async () => {
+        console.log('🛑 Deteniendo OpenGravity...');
+        await bot.stop();
         console.log('🛑 OpenGravity detenido.');
-    });
-    process.once('SIGTERM', () => {
-        bot.stop();
-        console.log('🛑 OpenGravity detenido.');
-    });
+        process.exit(0);
+    };
+
+    process.once('SIGINT', stopBot);
+    process.once('SIGTERM', stopBot);
 }
 
 bootstrap().catch(error => {
-    console.error('❌ Error crítico:', error);
+    console.error('❌ Error crítico al iniciar:', error);
     process.exit(1);
 });

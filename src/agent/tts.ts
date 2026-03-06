@@ -5,12 +5,9 @@ export async function generateSpeech(text: string): Promise<Buffer> {
     console.log(`📡 Generando voz gratis (Google Translate) para: "${text.substring(0, 30)}..."`);
 
     try {
-        // Limit text to 200 characters as per google-tts-api limits
-        const truncatedText = text.substring(0, 200);
-
         // This generates a URL for the Google Translate TTS engine
         // No API KEY required, No Credit Card required
-        const results = googleTTS.getAllAudioUrls(truncatedText, {
+        const results = googleTTS.getAllAudioUrls(text, {
             lang: 'es',
             slow: false,
             host: 'https://translate.google.com',
@@ -20,10 +17,18 @@ export async function generateSpeech(text: string): Promise<Buffer> {
         // Fetch all audio chunks (usually only 1 for short messages)
         const audioBuffers = await Promise.all(
             results.map(async (item) => {
-                const response = await fetch(item.url);
-                if (!response.ok) throw new Error('Error al obtener audio de Google Translate');
-                const arrayBuffer = await response.arrayBuffer();
-                return Buffer.from(arrayBuffer);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+                try {
+                    const response = await fetch(item.url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error(`Google TTS Error: ${response.status}`);
+                    const arrayBuffer = await response.arrayBuffer();
+                    return Buffer.from(arrayBuffer);
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    throw err;
+                }
             })
         );
 
