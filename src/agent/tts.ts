@@ -1,41 +1,39 @@
-import { TextToSpeechClient } from '@google-cloud/text-to-speech';
+import * as googleTTS from 'google-tts-api';
 import { config } from '../config.js';
 
-// Initialize the Google Text-to-Speech client
-// It will automatically use the credentials from GOOGLE_APPLICATION_CREDENTIALS env var
-const client = new TextToSpeechClient();
-
 export async function generateSpeech(text: string): Promise<Buffer> {
-    console.log(`📡 Llamando a Google Cloud TTS para: "${text.substring(0, 30)}..."`);
+    console.log(`📡 Generando voz gratis (Google Translate) para: "${text.substring(0, 30)}..."`);
 
     try {
-        const request = {
-            input: { text },
-            voice: {
-                languageCode: 'es-ES',
-                name: 'es-ES-Standard-A', // Neutral female Spanish voice
-                ssmlGender: 'FEMALE' as const
-            },
-            audioConfig: {
-                audioEncoding: 'OGG_OPUS' as const
-            },
-        };
+        // Limit text to 200 characters as per google-tts-api limits
+        const truncatedText = text.substring(0, 200);
 
-        const [response] = await client.synthesizeSpeech(request);
+        // This generates a URL for the Google Translate TTS engine
+        // No API KEY required, No Credit Card required
+        const results = googleTTS.getAllAudioUrls(truncatedText, {
+            lang: 'es',
+            slow: false,
+            host: 'https://translate.google.com',
+            splitPunct: ' '
+        });
 
-        if (!response.audioContent) {
-            throw new Error('Google TTS no devolvió contenido de audio.');
-        }
+        // Fetch all audio chunks (usually only 1 for short messages)
+        const audioBuffers = await Promise.all(
+            results.map(async (item) => {
+                const response = await fetch(item.url);
+                if (!response.ok) throw new Error('Error al obtener audio de Google Translate');
+                const arrayBuffer = await response.arrayBuffer();
+                return Buffer.from(arrayBuffer);
+            })
+        );
 
-        console.log('✅ Audio generado correctamente con Google Cloud TTS.');
-        return Buffer.from(response.audioContent);
+        // Concatenate all buffers
+        const finalBuffer = Buffer.concat(audioBuffers);
+
+        console.log('✅ Audio generado correctamente (Voz gratuita).');
+        return finalBuffer;
     } catch (error: any) {
-        console.error('❌ Google Cloud TTS Error:', error);
-
-        // Fallback or better error message
-        if (error.message.includes('Billing')) {
-            throw new Error('Error: Es necesario habilitar la facturación en Google Cloud para usar la voz de Google.');
-        }
-        throw new Error(`Error en Google TTS: ${error.message}`);
+        console.error('❌ Error en Voz Gratuita:', error);
+        throw new Error(`Error generando voz gratuita: ${error.message}`);
     }
 }
