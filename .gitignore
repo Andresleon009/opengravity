@@ -5,3 +5,8 @@ service-account.json
 memory.db*
 *.log
 ts_errors.txt
+credentials.json
+token.json
+ids.txt
+auth_url.txt
+init_google.ts

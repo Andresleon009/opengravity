@@ -2,7 +2,7 @@ import { ToolDefinition } from '../agent/llm.js';
 
 export interface ToolImplementation {
     definition: ToolDefinition;
-    execute: (args: any) => Promise<string> | string;
+    execute: (args: any, context?: { chatId: number }) => Promise<string> | string;
 }
 
 export const getCurrentTimeTool: ToolImplementation = {

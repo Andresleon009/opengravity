@@ -19,6 +19,8 @@ const configSchema = z.object({
     GOOGLE_APPLICATION_CREDENTIALS: z.string().default('./service-account.json'),
     FIREBASE_PROJECT_ID: z.string().optional(),
     FIREBASE_DATABASE_URL: z.string().optional(),
+    ELEVENLABS_API_KEY: z.string().min(1, 'ElevenLabs API key is required'),
+    ELEVENLABS_VOICE_ID: z.string().default('ErXw7e3v81Krt3o69G24'),
 });
 
 const parsedConfig = configSchema.safeParse(process.env);
