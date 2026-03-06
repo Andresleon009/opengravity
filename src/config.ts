@@ -23,8 +23,8 @@ const configSchema = z.object({
     GOOGLE_APPLICATION_CREDENTIALS: z.string().transform(stripQuotes).default('./service-account.json'),
     FIREBASE_PROJECT_ID: z.string().transform(stripQuotes).optional(),
     FIREBASE_DATABASE_URL: z.string().transform(stripQuotes).optional(),
-    ELEVENLABS_API_KEY: z.string().transform(stripQuotes).pipe(z.string().min(1, 'ElevenLabs API key is required')),
-    ELEVENLABS_VOICE_ID: z.string().transform(stripQuotes).default('ErXw7e3v81Krt3o69G24'),
+    ELEVENLABS_API_KEY: z.string().transform(stripQuotes).optional(),
+    ELEVENLABS_VOICE_ID: z.string().transform(stripQuotes).optional().default('ErXw7e3v81Krt3o69G24'),
 });
 
 const parsedConfig = configSchema.safeParse(process.env);
