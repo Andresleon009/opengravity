@@ -61,6 +61,11 @@ async function callGroq(messages: ChatMessage[], tools: ToolDefinition[]): Promi
     }
 
     const data = await response.json();
+
+    if (!data.choices || data.choices.length === 0) {
+        throw new Error('Groq no devolvió ninguna respuesta (choices[0] es undefined).');
+    }
+
     return {
         message: data.choices[0].message,
         finish_reason: data.choices[0].finish_reason,
@@ -102,6 +107,11 @@ async function callOpenRouter(messages: ChatMessage[], tools: ToolDefinition[]):
     }
 
     const data = await response.json();
+
+    if (!data.choices || data.choices.length === 0) {
+        throw new Error('OpenRouter no devolvió ninguna respuesta (choices[0] es undefined).');
+    }
+
     return {
         message: data.choices[0].message,
         finish_reason: data.choices[0].finish_reason,
@@ -111,12 +121,12 @@ async function callOpenRouter(messages: ChatMessage[], tools: ToolDefinition[]):
 export async function generateCompletion(messages: ChatMessage[], tools: ToolDefinition[]): Promise<LLMResponse> {
     try {
         return await callGroq(messages, tools);
-    } catch (error) {
-        console.error('⚠️ Groq request failed, trying OpenRouter fallback...', error);
+    } catch (error: any) {
+        console.error('⚠️ Groq request failed, trying OpenRouter fallback...', error.message);
         try {
             return await callOpenRouter(messages, tools);
-        } catch (fallbackError) {
-            console.error('❌ OpenRouter fallback also failed:', fallbackError);
+        } catch (fallbackError: any) {
+            console.error('❌ OpenRouter fallback also failed:', fallbackError.message);
             throw fallbackError;
         }
     }
